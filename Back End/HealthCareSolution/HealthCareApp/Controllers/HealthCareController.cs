@@ -1,6 +1,7 @@
 ﻿using HealthCareApp.Interfaces;
 using HealthCareApp.Models;
 using HealthCareApp.Models.DTO;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace HealthCareApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableCors("AngularCORS")]
     public class HealthCareController : ControllerBase
     {
         private readonly IManageService<UserDTO, DoctorDTO, PatientDTO,UpdateDTO> _service;
