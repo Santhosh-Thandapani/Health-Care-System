@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './Patient.css';
 import { useNavigate } from 'react-router';
+import bg from './Assets/login-bg.jpg';
+import {toast } from 'react-toastify';
 
 const Patient = () => {
 
@@ -22,32 +24,59 @@ const Patient = () => {
 
     var patientRegister=()=>{
 
-        console.log(patient)
-        fetch("http://localhost:5139/api/HealthCare/PatientRegister",{
-        "method":"POST",
-        headers:{
-            "accept": "text/plain",
-            "Content-Type": 'application/json'
-        },
-        "body":JSON.stringify({...patient,"patient":{} })})
-        .then(async (data)=>{
-            if(data.status == 200)
-            {
-                var myData = await data.json();
-                console.log(myData);
-                if(myData.token!=""){
-                    localStorage.setItem("token",myData.token);
-                   // navigate("/admin");
-                }
-                alert("Success");
-            }     
-        }).catch((err)=>{
-            console.log(err.error)
-        })
+        if(validate()){
+          fetch("http://localhost:5139/api/HealthCare/PatientRegister",{
+          "method":"POST",
+          headers:{
+              "accept": "text/plain",
+              "Content-Type": 'application/json'
+          },
+          "body":JSON.stringify({...patient,"patient":{} })})
+          .then(async (data)=>{
+              if(data.status == 200)
+              {
+                  var myData = await data.json();
+                  console.log(myData);
+                  if(myData.token!=""){
+                      localStorage.setItem("token",myData.token);
+                    // navigate("/admin");
+                  }
+                  navigate("/patienthome")
+              }     
+          }).catch((err)=>{
+              console.log(err.error)
+          })
+        }
+    }
+
+
+    const validate = () => {
+      let result = true;
+      if (patient.name === '' || patient.name  === null) {
+          result = false;
+          toast.warning('Please Enter Name ');
+      }
+      else if( patient.dateOfBirth === '' || patient.dateOfBirth === null) {
+          result = false;
+          toast.warning('Please Enter Date of Birth');
+      }
+      else if( patient.address === '' || patient.address === null) {
+        result = false;
+        toast.warning('Please Enter Address');
+    }
+    else if( patient.password === '' || patient.password === null) {
+      result = false;
+      toast.warning('Please Enter Password');
+    }
+    else if( patient.contactNo === '' || patient.contactNo === null) {
+      result = false;
+      toast.warning('Please Enter Contact Number');
+    }
+      return result;
     }
 
   return (
-
+    <div className='background-clr'>
     <section className="text-center text-lg-start">
       <div className="container py-4">
         <div className="row g-0 align-items-center">
@@ -130,7 +159,7 @@ const Patient = () => {
 
           <div className="col-lg-6 mb-5 mb-lg-0 signup-image">
             <img
-              src="https://mdbootstrap.com/img/new/ecommerce/vertical/004.jpg"
+              src={bg}
               className="rounded-4 shadow-4 image-fluid"
               alt=""
             />
@@ -138,6 +167,7 @@ const Patient = () => {
         </div>
       </div>
     </section>
+    </div>
   );
 };
 

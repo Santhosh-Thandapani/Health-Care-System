@@ -21,7 +21,7 @@ namespace HealthCareApp.Services
             if (doctor != null) 
             {
                 var hmac = new HMACSHA512();
-                doctor.User.UserId = await _userIdService.GenerateUserId("Doctor",count);
+                doctor.User.UserId =await  _userIdService.GenerateUserId("Doctor",count);
                 doctor.User.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(doctor.PasswordClear ?? "1234"));
                 doctor.User.PasswordKey = hmac.Key;
                 doctor.User.Role = "Doctor";

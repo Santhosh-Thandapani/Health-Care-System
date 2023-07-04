@@ -1,26 +1,24 @@
- /* body {
-    background-image: url("./Assets/bg2.jpg");
+ .background-clr {
+    background-color: aliceblue;
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-  }  */
+  }  
   
-  .cascading-right {
+
+  
+  .card-body {
+    margin-top: -10px;
+  }
+  .card-cascading-right{
     margin-left: 10%;
-    height: 540px;
-    width: 500px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 0.25rem;
   }
-  
-  @media (max-width: 991.98px) {
-    .cascading-right {
-      margin-left: 0;
-      width: 100%;
-    }
-  }
-  
+
   .form-outline {
     position: relative;
-    margin-bottom: 1rem;
+  
   }
   
   .form-outline input {
@@ -32,7 +30,7 @@
   
   .form-outline label {
     position: absolute;
-    top: -15px;
+    top: -60px;
     left: 0.5rem;
     color: rgba(0, 0, 0, 0.7);
     background-color: #fff;
@@ -93,10 +91,16 @@
     .row {
       flex-direction: column;
     }
-  
-    .signup-image {
-      max-width: 100%;
-      margin-bottom: 2rem;
-    }
   }
+  
+@media (max-width: 1400.98px) {
+  .container {
+    padding: 2rem;
+  }
+
+  .signup-image {
+    width: 100%; /* Adjust the size as needed */
+  }
+}
+  
   

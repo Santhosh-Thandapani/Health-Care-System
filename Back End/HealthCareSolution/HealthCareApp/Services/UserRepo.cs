@@ -46,7 +46,6 @@ namespace HealthCareApp.Services
                         await _context.SaveChangesAsync();
                         return doc;
                     }
-                    return null;
                 }
 
             }
@@ -54,7 +53,7 @@ namespace HealthCareApp.Services
             {
                 Debug.WriteLine(ex);
             }
-            throw new Exception();
+            throw new Exception("unable delete at this moment");
         }
 
         public async Task<User?> Get(string key)
@@ -86,6 +85,7 @@ namespace HealthCareApp.Services
                 if (users != null)
                     return users;
                 return null;
+                
             }
             catch (Exception ex)
             {

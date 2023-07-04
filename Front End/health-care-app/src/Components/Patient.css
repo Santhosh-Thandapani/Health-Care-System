@@ -1,12 +1,13 @@
- /* body {
-    background-image: url("./Assets/bg2.jpg");
+
+  .background-clr {
+    background-color: aliceblue;
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-  }  */
-  
+  } 
+
   .cascading-right {
-    margin-left: 10%;
+    margin-left: 20%;
     height: 540px;
     width: 500px;
   }

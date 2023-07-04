@@ -37,6 +37,7 @@ builder.Services.AddScoped<IManageService<UserDTO, DoctorDTO, PatientDTO, Update
 builder.Services.AddScoped<IGenerateToken,GenerateTokenService>();
 builder.Services.AddScoped<IGenerateUserId,GenerateUserIdService>();
 builder.Services.AddScoped<IAdapterService,AdapterService>();
+builder.Services.AddScoped<IAppoint, AppointmentRepo>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

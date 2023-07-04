@@ -1,6 +1,7 @@
 ﻿using HealthCareApp.Interfaces;
 using HealthCareApp.Models;
 using HealthCareApp.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,8 @@ namespace HealthCareApp.Controllers
             _service=service;
         }
 
+
+        
         [HttpPost("Login")]
         [ProducesResponseType(typeof(UserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -57,7 +60,7 @@ namespace HealthCareApp.Controllers
             }
             return BadRequest("Unable to register at this moment");
         }
-
+        [Authorize(Roles ="Admin")]
         [HttpPut("Update Doctor Status")]
         [ProducesResponseType(typeof(UpdateDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -71,12 +74,38 @@ namespace HealthCareApp.Controllers
             return BadRequest("Unable to update status at this moment");
         }
 
-        [HttpGet("Get All Doctors")]
+        [HttpPut("decline Doctor Status")]
+        [ProducesResponseType(typeof(UpdateDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<UpdateDTO>> DeclineDoctorStatus(UpdateDTO updateDTO)
+        {
+            var result = await _service.DeclineDoctor(updateDTO);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+            return BadRequest("Unable to update status at this moment");
+        }
+
+        [HttpGet("Get Approved Doctors")]
         [ProducesResponseType(typeof(ICollection<Doctor?>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ICollection<Doctor?>>> GetDoctors()
+        public async Task<ActionResult<ICollection<Doctor?>>> GetApprovedDoctors()
         {
-            var result = await _service.GetAllDoctors();
+            var result = await _service.GetApprovedDoctors();
+            if (result != null)
+            {
+                return Ok(result);
+            }
+            return NotFound("Unable to update status at this moment");
+        }
+
+        [HttpGet("Get Not Approved Doctors")]
+        [ProducesResponseType(typeof(ICollection<Doctor?>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ICollection<Doctor?>>> GetNotApprovedDoctors()
+        {
+            var result = await _service.GetNotApprovedDoctors();
             if (result != null)
             {
                 return Ok(result);
@@ -97,6 +126,7 @@ namespace HealthCareApp.Controllers
             }
             return NotFound("Unable to update status at this moment");
         }
+
 
 
     }

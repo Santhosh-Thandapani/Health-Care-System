@@ -2,6 +2,7 @@
 using HealthCareApp.Models;
 using HealthCareApp.Models.DTO;
 using Microsoft.VisualBasic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,6 +12,7 @@ namespace HealthCareApp.Services
     public class ManagerService : IManageService<UserDTO, DoctorDTO, PatientDTO,UpdateDTO>
     {
         private readonly IRepo<User, string> _userRepo;
+        private readonly IAppoint _appointment;
         private readonly IRepo<Patient, string> _patientRepo;
         private readonly IRepo<Doctor, string> _doctorRepo;
         private readonly IGenerateToken _tokenService;
@@ -21,9 +23,11 @@ namespace HealthCareApp.Services
             IRepo<Patient,string> patientRepo,
             IRepo<Doctor,string> doctorRepo, 
             IAdapterService adapterService,
-            IGenerateToken tokenService)
+            IGenerateToken tokenService,
+            IAppoint appointment)
         {
             _userRepo=userRepo;
+            _appointment = appointment;
             _patientRepo=patientRepo;
             _doctorRepo=doctorRepo;
             _tokenService = tokenService;
@@ -32,13 +36,13 @@ namespace HealthCareApp.Services
 
         public async Task<UserDTO?> Login(UserDTO userDTO)
         {
-            UserDTO user = null;
 
-            if(userDTO.UserId != null ) 
+            if(userDTO.UserId != null && userDTO.Password!=null) 
             {
                 var doctorData = await _userRepo.Get(userDTO.UserId);
                 if (doctorData != null)
                 {
+
                     var hmac = new HMACSHA512(doctorData.PasswordKey);
                     var userPass = hmac.ComputeHash(Encoding.UTF8.GetBytes(userDTO.Password));
                     for (int i = 0; i < userPass.Length; i++)
@@ -46,11 +50,11 @@ namespace HealthCareApp.Services
                         if (userPass[i] != doctorData.PasswordHash[i])
                             return null;
                     }
-                    user = new UserDTO();
+                    UserDTO user = user = new UserDTO();
                     user.UserId = doctorData.UserId;
                     user.Status = doctorData.Status;
                     user.Role = doctorData.Role;
-                    user.Token = _tokenService.GenerateToken(user);
+                    user.Token =await _tokenService.GenerateToken(user);
                     return user;
                 }
             }
@@ -59,7 +63,6 @@ namespace HealthCareApp.Services
 
         public async Task<UserDTO?> DoctorRegisteration(DoctorDTO doctor)
         {
-            UserDTO userDTO = null;
             int count = 0;
             var allDoctors = await _doctorRepo.GetAll();
             if (allDoctors!=null)
@@ -72,18 +75,19 @@ namespace HealthCareApp.Services
           
             if (userResult != null && DoctorResult != null)
             {
-                userDTO = new UserDTO();
+                UserDTO userDTO = new UserDTO();
                 userDTO.UserId = userResult.UserId;
                 userDTO.Role = userResult.Role;
                 userDTO.Status = userResult.Status;
-                userDTO.Token = _tokenService.GenerateToken(userDTO);
+                userDTO.Token =await _tokenService.GenerateToken(userDTO);
+                return userDTO;
             }
-            return userDTO;
+            return new UserDTO();
         }
 
         public async Task<UserDTO?> PatientRegisteration(PatientDTO patient)
         {
-            UserDTO userDTO = null;
+            UserDTO userDTO = new UserDTO();
             int count = 0;
             var allPatients = await _patientRepo.GetAll();
             if (allPatients != null)
@@ -95,11 +99,10 @@ namespace HealthCareApp.Services
             var PatientResult = await _patientRepo.Add(patient);
             if (userResult != null && PatientResult != null)
             {
-                userDTO = new UserDTO();
                 userDTO.UserId = userResult.UserId;
                 userDTO.Role = userResult.Role;
                 userDTO.Status = userResult.Status;
-                userDTO.Token = _tokenService.GenerateToken(userDTO);
+                userDTO.Token =await _tokenService.GenerateToken(userDTO);
             }
             return userDTO;
         }
@@ -111,8 +114,6 @@ namespace HealthCareApp.Services
             {
                 if (user.Status == "Not Approved")
                     user.Status = "Approved";
-                else
-                    user.Status = "Not Approved";
                 var result = await _userRepo.Update(user);
                 if (result != null)
                     return item;
@@ -121,11 +122,21 @@ namespace HealthCareApp.Services
             return null; 
         }
 
-        public async Task<ICollection<Doctor?>> GetAllDoctors()
+        public async Task<ICollection<Doctor?>> GetApprovedDoctors()
         {
+            List<Doctor> approvedDoctor= new List<Doctor>();
             var doctors= await _doctorRepo.GetAll();
-            if(doctors != null)
-                return doctors;
+            var users= await _userRepo.GetAll();
+            var approvedDocsID = users.Where(s => s.Role == "Doctor" && s.Status == "Approved").Select(p => p.UserId).ToList();
+            if(approvedDocsID.Count() > 0)
+            {
+                foreach (var id in approvedDocsID)
+                {
+                    var doc = doctors.SingleOrDefault(s => s.DoctorId == id);
+                    approvedDoctor.Add(doc);
+                }
+                return approvedDoctor;
+            }
             return null;
         }
 
@@ -134,6 +145,73 @@ namespace HealthCareApp.Services
             var patients = await _patientRepo.GetAll();
             if(patients != null)
                 return patients;
+            return null;
+        }
+
+        public async Task<ICollection<Doctor?>> GetNotApprovedDoctors()
+        {
+            List<Doctor> approvedDoctor = new List<Doctor>();
+            var doctors = await _doctorRepo.GetAll();
+            var users = await _userRepo.GetAll();
+            var approvedDocsID = users.Where(s => s.Role == "Doctor" && s.Status == "Not Approved").Select(p => p.UserId).ToList();
+            if (approvedDocsID.Count() > 0)
+            {
+                foreach (var id in approvedDocsID)
+                {
+                    var doc = doctors.SingleOrDefault(s => s.DoctorId == id);
+                    approvedDoctor.Add(doc);
+                }
+                return approvedDoctor;
+            }
+            return null;
+        }
+
+
+
+        public async Task<UpdateDTO?> DeclineDoctor(UpdateDTO item)
+        {
+            User user = await _userRepo.Get(item.DoctorId);
+            if (user != null)
+            {
+                if (user.Status == "Not Approved")
+                    user.Status = "Declined";
+                var result = await _userRepo.Update(user);
+                if (result != null)
+                    return item;
+                return null;
+            }
+            return null;
+        }
+
+        public async Task<Appointment> AddAppointment(Appointment appointment)
+        {
+            var result = await _appointment.Add(appointment);
+            if(result != null)
+                return result;
+            return null;
+        }
+
+        public async Task<Appointment> DeleteAppointment(Appointment appointment)
+        {
+            var result = await _appointment.Delete(appointment);
+            if (result != null)
+                return result;
+            return null;
+        }
+
+        public async Task<ICollection<Appointment>> GetAppointmentsByDoctor(AppoDTO app)
+        {
+            var result = await _appointment.GetAppoByDoc(app);
+            if (result != null)
+                return result;
+            return null;
+        }
+
+        public async Task<ICollection<Appointment>> GetAppointmentsByPatient(AppoDTO app)
+        {
+            var result = await _appointment.GetAppoBypatient(app);
+            if (result != null)
+                return result;
             return null;
         }
     }

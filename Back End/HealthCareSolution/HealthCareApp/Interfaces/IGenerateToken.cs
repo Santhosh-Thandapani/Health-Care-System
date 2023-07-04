@@ -4,6 +4,6 @@ namespace HealthCareApp.Interfaces
 {
     public interface IGenerateToken
     {
-        public string GenerateToken(UserDTO user);
+        public Task<string> GenerateToken(UserDTO user);
     }
 }

@@ -84,7 +84,6 @@ namespace HealthCareApp.Services
                 var patients = await _context.Patients.ToListAsync();
                 if (patients != null)
                     return patients;
-                return null;
             }
             catch (Exception ex)
             {
